@@ -15,13 +15,16 @@ function TabBarIcon(props: {
   return <FontAwesome size={28} style={{ marginBottom: -3 }} {...props} />;
 }
 
+import { useTheme } from '@/context/ThemeContext';
+
 export default function TabLayout() {
   const colorScheme = useColorScheme();
+  const { theme } = useTheme();
 
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: Colors[colorScheme ?? 'light'].tint,
+        tabBarActiveTintColor: theme,
         // Disable the static render of the header on web
         // to prevent a hydration error in React Navigation v6.
         headerShown: useClientOnlyValue(false, true),
@@ -29,29 +32,36 @@ export default function TabLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
-          headerRight: () => (
-            <Link href="/modal" asChild>
-              <Pressable>
-                {({ pressed }) => (
-                  <FontAwesome
-                    name="info-circle"
-                    size={25}
-                    color={Colors[colorScheme ?? 'light'].text}
-                    style={{ marginRight: 15, opacity: pressed ? 0.5 : 1 }}
-                  />
-                )}
-              </Pressable>
-            </Link>
-          ),
+          title: 'Inicio',
+          tabBarIcon: ({ color }) => <TabBarIcon name="home" color={color} />,
         }}
       />
       <Tabs.Screen
-        name="two"
+        name="train"
         options={{
-          title: 'Tab Two',
-          tabBarIcon: ({ color }) => <TabBarIcon name="code" color={color} />,
+          title: 'Entrenar',
+          tabBarIcon: ({ color }) => <TabBarIcon name="plus-square" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="history"
+        options={{
+          title: 'Historial',
+          tabBarIcon: ({ color }) => <TabBarIcon name="history" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="rest"
+        options={{
+          title: 'Descanso',
+          tabBarIcon: ({ color }) => <TabBarIcon name="clock-o" color={color} />,
+        }}
+      />
+      <Tabs.Screen
+        name="exercises"
+        options={{
+          title: 'Ejercicios',
+          tabBarIcon: ({ color }) => <TabBarIcon name="list" color={color} />,
         }}
       />
     </Tabs>

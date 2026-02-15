@@ -1,10 +1,10 @@
-const tintColorLight = '#2f95dc';
+const tintColorLight = '#007AFF';
 const tintColorDark = '#fff';
 
 export default {
   light: {
     text: '#000',
-    background: '#fff',
+    background: '#F2F2F7', // iOS styled gray background
     tint: tintColorLight,
     tabIconDefault: '#ccc',
     tabIconSelected: tintColorLight,

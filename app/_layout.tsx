@@ -1,5 +1,5 @@
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { DarkTheme, DefaultTheme, ThemeProvider } from '@react-navigation/native';
+import { ThemeProvider as NavThemeProvider, DarkTheme, DefaultTheme } from '@react-navigation/native';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import * as SplashScreen from 'expo-splash-screen';
@@ -7,6 +7,9 @@ import { useEffect } from 'react';
 import 'react-native-reanimated';
 
 import { useColorScheme } from '@/components/useColorScheme';
+import { WorkoutProvider } from '@/context/WorkoutContext';
+import { ProgressProvider } from '@/context/ProgressContext';
+import { ThemeProvider } from '@/context/ThemeContext';
 
 export {
   // Catch any errors thrown by the Layout component.
@@ -49,11 +52,20 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
+    <WorkoutProvider>
+      <ProgressProvider>
+        <ThemeProvider>
+          <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+            <Stack>
+              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+              <Stack.Screen name="progress" options={{ presentation: 'modal', title: 'Mi Progreso' }} />
+              <Stack.Screen name="routines" options={{ headerShown: false }} />
+            </Stack>
+          </NavThemeProvider>
+        </ThemeProvider>
+      </ProgressProvider>
+    </WorkoutProvider>
   );
 }
+
