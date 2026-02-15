@@ -209,6 +209,17 @@ export default function HomeScreen() {
         >
           <Text style={styles.cardText}>{getRecentExercises()}</Text>
         </Card>
+
+        {/* Test Suite Card */}
+        <Card
+          title="🧪 Test Suite"
+          icon="check-circle"
+          color="#00D9FF"
+          onPress={() => router.push('/test-suite')}
+        >
+          <Text style={styles.cardTextBold}>Tests de Integración</Text>
+          <Text style={styles.cardText}>Validar arquitectura SQLite</Text>
+        </Card>
       </View>
       <Modal
         animationType="slide"

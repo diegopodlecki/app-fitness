@@ -2,7 +2,8 @@ import React from 'react';
 import { StyleSheet, FlatList, TouchableOpacity, Alert, View as DefaultView } from 'react-native';
 import { View, Text } from '@/components/Themed';
 import { useTheme } from '@/context/ThemeContext';
-import { useWorkouts, Routine } from '@/context/WorkoutContext';
+import { useWorkouts } from '@/context/WorkoutContext';
+import { Routine } from '@/models/Workout';
 import { useRouter } from 'expo-router';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
 

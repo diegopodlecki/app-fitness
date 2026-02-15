@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
 export const THEMES = {
     azul: {
@@ -41,10 +42,35 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 export function ThemeProvider({ children }: { children: ReactNode }) {
     const [themeName, setThemeName] = useState<ThemeKey>('azul');
 
+    // Load theme from AsyncStorage on mount
+    useEffect(() => {
+        const loadTheme = async () => {
+            try {
+                const stored = await AsyncStorage.getItem('@theme');
+                if (stored && stored in THEMES) {
+                    setThemeName(stored as ThemeKey);
+                }
+            } catch (e) {
+                console.error('Failed to load theme', e);
+            }
+        };
+        loadTheme();
+    }, []);
+
+    // Save theme to AsyncStorage when it changes
+    const handleSetTheme = async (key: ThemeKey) => {
+        try {
+            await AsyncStorage.setItem('@theme', key);
+            setThemeName(key);
+        } catch (e) {
+            console.error('Failed to save theme', e);
+        }
+    };
+
     const value = {
         theme: THEMES[themeName].color,
         themeName,
-        setTheme: setThemeName,
+        setTheme: handleSetTheme,
     };
 
     return (

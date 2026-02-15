@@ -4,7 +4,8 @@ import { View, Text } from '@/components/Themed';
 import Colors from '@/constants/Colors';
 import { exercisesData, workoutTemplates } from '@/constants/data';
 import FontAwesome from '@expo/vector-icons/FontAwesome';
-import { useWorkouts, WorkoutExercise, WorkoutSet } from '@/context/WorkoutContext';
+import { useWorkouts } from '@/context/WorkoutContext';
+import { WorkoutExercise, WorkoutSet } from '@/models/Workout';
 import { useTheme } from '@/context/ThemeContext';
 import { useRouter } from 'expo-router';
 

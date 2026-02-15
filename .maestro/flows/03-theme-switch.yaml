@@ -1,0 +1,26 @@
+appId: com.yourcompany.fitnessapp
+---
+# Test: Theme Switching
+# Validates that theme changes persist
+
+- launchApp
+- tapOn: "Inicio"
+
+# Scroll to theme selector
+- scroll
+
+# Open theme selector
+- tapOn: "🎨 Tema"
+- assertVisible: "Seleccionar Tema"
+
+# Change to red theme
+- tapOn: "Rojo"
+- assertVisible: "Tema actualizado"
+
+# Restart app to verify persistence
+- stopApp
+- launchApp
+
+# Verify theme persisted
+# (Visual verification - theme should still be red)
+- assertVisible: "Inicio"

@@ -61,6 +61,7 @@ function RootLayoutNav() {
               <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
               <Stack.Screen name="progress" options={{ presentation: 'modal', title: 'Mi Progreso' }} />
               <Stack.Screen name="routines" options={{ headerShown: false }} />
+              <Stack.Screen name="test-suite" options={{ presentation: 'modal', title: '🧪 Tests' }} />
             </Stack>
           </NavThemeProvider>
         </ThemeProvider>

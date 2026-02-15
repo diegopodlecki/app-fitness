@@ -1,0 +1,45 @@
+appId: com.yourcompany.fitnessapp
+---
+# Test: Create Workout
+# Validates the complete workout creation flow
+
+- launchApp
+- tapOn: "Entrenar"
+- assertVisible: "Nuevo Entrenamiento"
+
+# Start new workout
+- tapOn: "Nuevo Entrenamiento"
+- assertVisible: "Nombre del Entrenamiento"
+
+# Enter workout name
+- tapOn: 
+    id: "workout-name-input"
+- inputText: "Test Workout Maestro"
+
+# Add an exercise
+- tapOn: "Agregar Ejercicio"
+- assertVisible: "Seleccionar Ejercicio"
+
+# Select first exercise from list
+- tapOn: "Press Banca"
+- assertVisible: "Press Banca"
+
+# Add a set
+- tapOn:
+    id: "weight-input"
+- inputText: "80"
+
+- tapOn:
+    id: "reps-input"  
+- inputText: "10"
+
+- tapOn: "Completar Serie"
+- assertVisible: "Serie completada"
+
+# Finish workout
+- tapOn: "Finalizar Entrenamiento"
+- assertVisible: "Entrenamiento guardado"
+
+# Verify workout appears in history
+- tapOn: "Historial"
+- assertVisible: "Test Workout Maestro"

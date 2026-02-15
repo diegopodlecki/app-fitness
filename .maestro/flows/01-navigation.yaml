@@ -1,0 +1,27 @@
+appId: com.yourcompany.fitnessapp
+---
+# Test: Basic Navigation
+# Validates that all main tabs are accessible
+
+- launchApp
+- assertVisible: "Inicio"
+
+# Navigate to Train tab
+- tapOn: "Entrenar"
+- assertVisible: "Nuevo Entrenamiento"
+
+# Navigate to History tab  
+- tapOn: "Historial"
+- assertVisible: "Entrenamientos Pasados"
+
+# Navigate to Rest tab
+- tapOn: "Descanso"
+- assertVisible: "Temporizador"
+
+# Navigate to Exercises tab
+- tapOn: "Ejercicios"
+- assertVisible: "Biblioteca de Ejercicios"
+
+# Return to Home
+- tapOn: "Inicio"
+- assertVisible: "Inicio"

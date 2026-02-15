@@ -1,38 +1,10 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { UserProfile } from '@/models/User';
+import { ProgressEntry } from '@/models/Progress';
 
-// User Profile
-export interface UserProfile {
-    age: string;
-    height: string; // cm
-    initialWeight: string; // kg
-}
-
-export interface ProgressEntry {
-    id: string;
-    date: string;
-    timestamp: number;
-    weight: string; // kg
-
-    // Detailed Measurements
-    neck?: string;
-    shoulders?: string;
-    chest?: string;
-    waist?: string;
-    hips?: string;
-    bicepLeft?: string;
-    bicepRight?: string;
-    forearmLeft?: string;
-    forearmRight?: string;
-    thighLeft?: string; // Muslo
-    thighRight?: string;
-    quadLeft?: string; // Cuadriceps (User specific request)
-    quadRight?: string;
-    calfLeft?: string;
-    calfRight?: string;
-
-    photoUri?: string;
-}
+// Removed local interfaces in favor of @/models
 
 interface ProgressContextType {
     profile: UserProfile | null;
@@ -52,15 +24,11 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     useEffect(() => {
         const loadData = async () => {
             try {
-                const storedEntries = await AsyncStorage.getItem('@progress');
-                const storedProfile = await AsyncStorage.getItem('@profile');
+                const storedEntries = await AsyncStorage.getItem('@progress_entries');
+                const storedProfile = await AsyncStorage.getItem('@user_profile');
 
-                if (storedEntries) {
-                    setEntries(JSON.parse(storedEntries));
-                }
-                if (storedProfile) {
-                    setProfile(JSON.parse(storedProfile));
-                }
+                if (storedEntries) setEntries(JSON.parse(storedEntries));
+                if (storedProfile) setProfile(JSON.parse(storedProfile));
             } catch (e) {
                 console.error("Failed to load progress", e);
             }
@@ -68,41 +36,33 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
         loadData();
     }, []);
 
-    const saveProfile = async (newProfile: UserProfile) => {
+    const updateProfile = async (newProfile: UserProfile) => {
         try {
-            await AsyncStorage.setItem('@profile', JSON.stringify(newProfile));
+            await AsyncStorage.setItem('@user_profile', JSON.stringify(newProfile));
+            setProfile(newProfile);
         } catch (e) {
             console.error("Failed to save profile", e);
         }
     };
 
-    const saveEntries = async (newEntries: ProgressEntry[]) => {
+    const addEntry = async (entry: ProgressEntry) => {
         try {
-            await AsyncStorage.setItem('@progress', JSON.stringify(newEntries));
+            const updated = [...entries, entry];
+            await AsyncStorage.setItem('@progress_entries', JSON.stringify(updated));
+            setEntries(updated);
         } catch (e) {
-            console.error("Failed to save progress", e);
+            console.error("Failed to add entry", e);
         }
     };
 
-    const updateProfile = (newProfile: UserProfile) => {
-        setProfile(newProfile);
-        saveProfile(newProfile);
-    };
-
-    const addEntry = (entry: ProgressEntry) => {
-        setEntries((prev) => {
-            const updated = [...prev, entry];
-            saveEntries(updated);
-            return updated;
-        });
-    };
-
-    const removeEntry = (id: string) => {
-        setEntries((prev) => {
-            const updated = prev.filter((e) => e.id !== id);
-            saveEntries(updated);
-            return updated;
-        });
+    const removeEntry = async (id: string) => {
+        try {
+            const updated = entries.filter((e) => e.id !== id);
+            await AsyncStorage.setItem('@progress_entries', JSON.stringify(updated));
+            setEntries(updated);
+        } catch (e) {
+            console.error("Failed to remove entry", e);
+        }
     };
 
     return (

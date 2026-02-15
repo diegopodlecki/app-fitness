@@ -1,0 +1,8 @@
+appId: com.yourcompany.fitnessapp
+---
+# Maestro Configuration
+# This file is used by Maestro to identify your app
+# Update the appId above with your actual app identifier
+
+env:
+  APP_ID: ${APP_ID-com.yourcompany.fitnessapp}

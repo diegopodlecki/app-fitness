@@ -1,47 +1,9 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { Workout, Routine } from '@/models/Workout';
 
-export interface WorkoutSet {
-    id: string;
-    reps: string;
-    weight: string;
-    completed: boolean;
-}
-
-export interface WorkoutExercise {
-    id: string; // unique instance id
-    exerciseId: string;
-    name: string;
-    sets: WorkoutSet[];
-}
-
-export interface Workout {
-    id: string;
-    date: string; // ISO string or formatted date
-    timestamp: number; // Unix timestamp for sorting/filtering
-    name: string; // e.g., "Full Body" or "Afternoon Workout"
-    duration: string; // e.g. "45 min"
-    exercises: WorkoutExercise[];
-    volume: string; // Total volume lifted
-}
-
-// Interfaces for Custom Routines
-export interface RoutineExercise {
-    exerciseId: string;
-    name: string; // Specific name or override
-    targetSets: string;
-    targetReps: string;
-    targetWeight?: string;
-    notes?: string;
-}
-
-export interface Routine {
-    id: string;
-    name: string;
-    description?: string;
-    exercises: RoutineExercise[];
-    createdAt: number;
-}
+// Removed local interfaces in favor of @/models/Workout
 
 interface WorkoutContextType {
     workouts: Workout[];
@@ -61,73 +23,69 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     const [routines, setRoutines] = useState<Routine[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Load data on mount
+    // Initial Load from AsyncStorage
     useEffect(() => {
-        const loadData = async () => {
+        const init = async () => {
             try {
+                // Load workouts
                 const storedWorkouts = await AsyncStorage.getItem('@workouts');
-                const storedRoutines = await AsyncStorage.getItem('@routines');
+                if (storedWorkouts) {
+                    setWorkouts(JSON.parse(storedWorkouts));
+                }
 
-                if (storedWorkouts) setWorkouts(JSON.parse(storedWorkouts));
-                if (storedRoutines) setRoutines(JSON.parse(storedRoutines));
+                // Load routines
+                const storedRoutines = await AsyncStorage.getItem('@routines');
+                if (storedRoutines) {
+                    setRoutines(JSON.parse(storedRoutines));
+                }
             } catch (e) {
                 console.error("Failed to load data", e);
             } finally {
                 setLoading(false);
             }
         };
-        loadData();
+        init();
     }, []);
 
-    // Helper to save workouts
-    const saveWorkouts = async (newWorkouts: Workout[]) => {
+
+    const addWorkout = async (workout: Workout) => {
         try {
-            await AsyncStorage.setItem('@workouts', JSON.stringify(newWorkouts));
+            const updated = [workout, ...workouts];
+            await AsyncStorage.setItem('@workouts', JSON.stringify(updated));
+            setWorkouts(updated);
         } catch (e) {
-            console.error("Failed to save workouts", e);
+            console.error("Failed to save workout", e);
         }
     };
 
-    // Helper to save routines
-    const saveRoutines = async (newRoutines: Routine[]) => {
+    const addRoutine = async (routine: Routine) => {
         try {
-            await AsyncStorage.setItem('@routines', JSON.stringify(newRoutines));
+            const updated = [routine, ...routines];
+            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
+            setRoutines(updated);
         } catch (e) {
-            console.error("Failed to save routines", e);
+            console.error("Failed to save routine", e);
         }
     };
 
-    const addWorkout = (workout: Workout) => {
-        setWorkouts((prev) => {
-            const updated = [workout, ...prev];
-            saveWorkouts(updated);
-            return updated;
-        });
+    const updateRoutine = async (id: string, updatedRoutine: Routine) => {
+        try {
+            const updated = routines.map(r => r.id === id ? updatedRoutine : r);
+            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
+            setRoutines(updated);
+        } catch (e) {
+            console.error("Failed to update routine", e);
+        }
     };
 
-    // Routine Actions
-    const addRoutine = (routine: Routine) => {
-        setRoutines((prev) => {
-            const updated = [...prev, routine];
-            saveRoutines(updated);
-            return updated;
-        });
-    };
-
-    const updateRoutine = (id: string, updatedRoutine: Routine) => {
-        setRoutines((prev) => {
-            const updated = prev.map(r => r.id === id ? updatedRoutine : r);
-            saveRoutines(updated);
-            return updated;
-        });
-    };
-
-    const deleteRoutine = (id: string) => {
-        setRoutines((prev) => {
-            const updated = prev.filter(r => r.id !== id);
-            saveRoutines(updated);
-            return updated;
-        });
+    const deleteRoutine = async (id: string) => {
+        try {
+            const updated = routines.filter(r => r.id !== id);
+            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
+            setRoutines(updated);
+        } catch (e) {
+            console.error("Failed to delete routine", e);
+        }
     };
 
     return (
