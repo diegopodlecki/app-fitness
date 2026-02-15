@@ -1,9 +1,8 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Workout, Routine } from '@/models/Workout';
-
-// Removed local interfaces in favor of @/models/Workout
+import ErrorService from '@/services/ErrorService';
+import { WorkoutSchema, RoutineSchema } from '@/models/schemas';
 
 interface WorkoutContextType {
     workouts: Workout[];
@@ -39,7 +38,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
                     setRoutines(JSON.parse(storedRoutines));
                 }
             } catch (e) {
-                console.error("Failed to load data", e);
+                ErrorService.handle(e, 'Fallo al cargar los datos almacenados.', true);
             } finally {
                 setLoading(false);
             }
@@ -47,34 +46,42 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
         init();
     }, []);
 
-
     const addWorkout = async (workout: Workout) => {
         try {
+            // Validate data
+            WorkoutSchema.parse(workout);
+
             const updated = [workout, ...workouts];
             await AsyncStorage.setItem('@workouts', JSON.stringify(updated));
             setWorkouts(updated);
         } catch (e) {
-            console.error("Failed to save workout", e);
+            ErrorService.handle(e, 'Datos de entrenamiento inválidos o error al guardar.');
         }
     };
 
     const addRoutine = async (routine: Routine) => {
         try {
+            // Validate data
+            RoutineSchema.parse(routine);
+
             const updated = [routine, ...routines];
             await AsyncStorage.setItem('@routines', JSON.stringify(updated));
             setRoutines(updated);
         } catch (e) {
-            console.error("Failed to save routine", e);
+            ErrorService.handle(e, 'Datos de rutina inválidos o error al guardar.');
         }
     };
 
     const updateRoutine = async (id: string, updatedRoutine: Routine) => {
         try {
+            // Validate data
+            RoutineSchema.parse(updatedRoutine);
+
             const updated = routines.map(r => r.id === id ? updatedRoutine : r);
             await AsyncStorage.setItem('@routines', JSON.stringify(updated));
             setRoutines(updated);
         } catch (e) {
-            console.error("Failed to update routine", e);
+            ErrorService.handle(e, 'Datos de rutina inválidos o error al actualizar.');
         }
     };
 
@@ -84,7 +91,7 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             await AsyncStorage.setItem('@routines', JSON.stringify(updated));
             setRoutines(updated);
         } catch (e) {
-            console.error("Failed to delete routine", e);
+            ErrorService.handle(e, 'No se pudo eliminar la rutina.');
         }
     };
 

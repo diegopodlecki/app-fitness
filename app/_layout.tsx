@@ -10,10 +10,11 @@ import { useColorScheme } from '@/components/useColorScheme';
 import { WorkoutProvider } from '@/context/WorkoutContext';
 import { ProgressProvider } from '@/context/ProgressContext';
 import { ThemeProvider } from '@/context/ThemeContext';
+import { ErrorBoundary } from '@/components/ErrorBoundary';
 
 export {
   // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
+  ErrorBoundary as ExpoErrorBoundary,
 } from 'expo-router';
 
 export const unstable_settings = {
@@ -52,21 +53,23 @@ function RootLayoutNav() {
   const colorScheme = useColorScheme();
 
   return (
-    <WorkoutProvider>
-      <ProgressProvider>
-        <ThemeProvider>
-          <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-            <Stack>
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-              <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-              <Stack.Screen name="progress" options={{ presentation: 'modal', title: 'Mi Progreso' }} />
-              <Stack.Screen name="routines" options={{ headerShown: false }} />
-              <Stack.Screen name="test-suite" options={{ presentation: 'modal', title: '🧪 Tests' }} />
-            </Stack>
-          </NavThemeProvider>
-        </ThemeProvider>
-      </ProgressProvider>
-    </WorkoutProvider>
+    <ErrorBoundary>
+      <WorkoutProvider>
+        <ProgressProvider>
+          <ThemeProvider>
+            <NavThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
+              <Stack>
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
+                <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                <Stack.Screen name="progress" options={{ presentation: 'modal', title: 'Mi Progreso' }} />
+                <Stack.Screen name="routines" options={{ headerShown: false }} />
+                <Stack.Screen name="test-suite" options={{ presentation: 'modal', title: '🧪 Tests' }} />
+              </Stack>
+            </NavThemeProvider>
+          </ThemeProvider>
+        </ProgressProvider>
+      </WorkoutProvider>
+    </ErrorBoundary>
   );
 }
 
