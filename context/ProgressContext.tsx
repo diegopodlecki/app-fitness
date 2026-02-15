@@ -1,16 +1,15 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { UserProfile } from '@/models/User';
 import { ProgressEntry } from '@/models/Progress';
 import ErrorService from '@/services/ErrorService';
-import { UserProfileSchema, ProgressEntrySchema } from '@/models/schemas';
+import { progressService } from '@/services/progressService';
 
 interface ProgressContextType {
     profile: UserProfile | null;
-    updateProfile: (profile: UserProfile) => void;
+    updateProfile: (profile: UserProfile) => Promise<void>;
     entries: ProgressEntry[];
-    addEntry: (entry: ProgressEntry) => void;
-    removeEntry: (id: string) => void;
+    addEntry: (entry: ProgressEntry) => Promise<void>;
+    removeEntry: (id: string) => Promise<void>;
 }
 
 const ProgressContext = createContext<ProgressContextType | undefined>(undefined);
@@ -19,15 +18,16 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
     const [entries, setEntries] = useState<ProgressEntry[]>([]);
     const [profile, setProfile] = useState<UserProfile | null>(null);
 
-    // Load data on mount
+    // Initial Load
     useEffect(() => {
         const loadData = async () => {
             try {
-                const storedEntries = await AsyncStorage.getItem('@progress_entries');
-                const storedProfile = await AsyncStorage.getItem('@user_profile');
-
-                if (storedEntries) setEntries(JSON.parse(storedEntries));
-                if (storedProfile) setProfile(JSON.parse(storedProfile));
+                const [p, e] = await Promise.all([
+                    progressService.getProfile(),
+                    progressService.getEntries()
+                ]);
+                setProfile(p);
+                setEntries(e);
             } catch (e) {
                 ErrorService.handle(e, 'No se pudo cargar el progreso.', true);
             }
@@ -37,36 +37,28 @@ export function ProgressProvider({ children }: { children: ReactNode }) {
 
     const updateProfile = async (newProfile: UserProfile) => {
         try {
-            // Validate data
-            UserProfileSchema.parse(newProfile);
-
-            await AsyncStorage.setItem('@user_profile', JSON.stringify(newProfile));
-            setProfile(newProfile);
+            const updated = await progressService.updateProfile(newProfile);
+            setProfile(updated);
         } catch (e) {
-            ErrorService.handle(e, 'Datos de perfil inválidos o error al guardar.');
+            ErrorService.handle(e, 'Error al guardar el perfil.');
         }
     };
 
     const addEntry = async (entry: ProgressEntry) => {
         try {
-            // Validate data
-            ProgressEntrySchema.parse(entry);
-
-            const updated = [entry, ...entries];
-            await AsyncStorage.setItem('@progress_entries', JSON.stringify(updated));
-            setEntries(updated);
+            const saved = await progressService.addEntry(entry);
+            setEntries(prev => [saved, ...prev]);
         } catch (e) {
-            ErrorService.handle(e, 'Datos de progreso inválidos o error al añadir.');
+            ErrorService.handle(e, 'Error al añadir la entrada de progreso.');
         }
     };
 
     const removeEntry = async (id: string) => {
         try {
-            const updated = entries.filter((e) => e.id !== id);
-            await AsyncStorage.setItem('@progress_entries', JSON.stringify(updated));
-            setEntries(updated);
+            await progressService.removeEntry(id);
+            setEntries(prev => prev.filter((e) => e.id !== id));
         } catch (e) {
-            ErrorService.handle(e, 'No se pudo eliminar la entrada.');
+            ErrorService.handle(e, 'Error al eliminar la entrada.');
         }
     };
 

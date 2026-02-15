@@ -1,18 +1,19 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import { Workout, Routine } from '@/models/Workout';
 import ErrorService from '@/services/ErrorService';
-import { WorkoutSchema, RoutineSchema } from '@/models/schemas';
+import { workoutService } from '@/services/workoutService';
+import { routineService } from '@/services/routineService';
 
 interface WorkoutContextType {
     workouts: Workout[];
-    addWorkout: (workout: Workout) => void;
+    addWorkout: (workout: Workout) => Promise<void>;
 
     // Routines
     routines: Routine[];
-    addRoutine: (routine: Routine) => void;
-    updateRoutine: (id: string, updatedRoutine: Routine) => void;
-    deleteRoutine: (id: string) => void;
+    addRoutine: (routine: Routine) => Promise<void>;
+    updateRoutine: (id: string, updatedRoutine: Routine) => Promise<void>;
+    deleteRoutine: (id: string) => Promise<void>;
+    loading: boolean;
 }
 
 const WorkoutContext = createContext<WorkoutContextType | undefined>(undefined);
@@ -22,23 +23,18 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
     const [routines, setRoutines] = useState<Routine[]>([]);
     const [loading, setLoading] = useState(true);
 
-    // Initial Load from AsyncStorage
+    // Initial Load
     useEffect(() => {
         const init = async () => {
             try {
-                // Load workouts
-                const storedWorkouts = await AsyncStorage.getItem('@workouts');
-                if (storedWorkouts) {
-                    setWorkouts(JSON.parse(storedWorkouts));
-                }
-
-                // Load routines
-                const storedRoutines = await AsyncStorage.getItem('@routines');
-                if (storedRoutines) {
-                    setRoutines(JSON.parse(storedRoutines));
-                }
+                const [w, r] = await Promise.all([
+                    workoutService.getAll(),
+                    routineService.getAll()
+                ]);
+                setWorkouts(w);
+                setRoutines(r);
             } catch (e) {
-                ErrorService.handle(e, 'Fallo al cargar los datos almacenados.', true);
+                ErrorService.handle(e, 'Fallo al cargar los datos del entrenamiento.', true);
             } finally {
                 setLoading(false);
             }
@@ -48,50 +44,37 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
 
     const addWorkout = async (workout: Workout) => {
         try {
-            // Validate data
-            WorkoutSchema.parse(workout);
-
-            const updated = [workout, ...workouts];
-            await AsyncStorage.setItem('@workouts', JSON.stringify(updated));
-            setWorkouts(updated);
+            const saved = await workoutService.save(workout);
+            setWorkouts(prev => [saved, ...prev]);
         } catch (e) {
-            ErrorService.handle(e, 'Datos de entrenamiento inválidos o error al guardar.');
+            ErrorService.handle(e, 'Error al guardar el entrenamiento.');
         }
     };
 
     const addRoutine = async (routine: Routine) => {
         try {
-            // Validate data
-            RoutineSchema.parse(routine);
-
-            const updated = [routine, ...routines];
-            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
-            setRoutines(updated);
+            const saved = await routineService.save(routine);
+            setRoutines(prev => [saved, ...prev]);
         } catch (e) {
-            ErrorService.handle(e, 'Datos de rutina inválidos o error al guardar.');
+            ErrorService.handle(e, 'Error al guardar la rutina.');
         }
     };
 
     const updateRoutine = async (id: string, updatedRoutine: Routine) => {
         try {
-            // Validate data
-            RoutineSchema.parse(updatedRoutine);
-
-            const updated = routines.map(r => r.id === id ? updatedRoutine : r);
-            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
-            setRoutines(updated);
+            const updated = await routineService.update(id, updatedRoutine);
+            setRoutines(prev => prev.map(r => r.id === id ? updated : r));
         } catch (e) {
-            ErrorService.handle(e, 'Datos de rutina inválidos o error al actualizar.');
+            ErrorService.handle(e, 'Error al actualizar la rutina.');
         }
     };
 
     const deleteRoutine = async (id: string) => {
         try {
-            const updated = routines.filter(r => r.id !== id);
-            await AsyncStorage.setItem('@routines', JSON.stringify(updated));
-            setRoutines(updated);
+            await routineService.delete(id);
+            setRoutines(prev => prev.filter(r => r.id !== id));
         } catch (e) {
-            ErrorService.handle(e, 'No se pudo eliminar la rutina.');
+            ErrorService.handle(e, 'Error al eliminar la rutina.');
         }
     };
 
@@ -102,7 +85,8 @@ export function WorkoutProvider({ children }: { children: ReactNode }) {
             routines,
             addRoutine,
             updateRoutine,
-            deleteRoutine
+            deleteRoutine,
+            loading
         }}>
             {children}
         </WorkoutContext.Provider>
